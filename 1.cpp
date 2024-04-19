@@ -254,16 +254,16 @@ public:
 
 int main()
 {
-	// Bus bus;
-	// bus.Input();
-	// bus.Print();
-	// cout << endl;
-	// cout << endl;
-	// Train train;
-	// train.Input();
-	// train.Print();
-	// cout << endl;
-	// cout << endl;
+	Bus bus;
+	bus.Input();
+	bus.Print();
+	cout << endl;
+	cout << endl;
+	Train train;
+	train.Input();
+	train.Print();
+	cout << endl;
+	cout << endl;
 	AirPlane airPlane;
 	airPlane.Input();
 	airPlane.Print();
