@@ -379,15 +379,15 @@ void Menu(char *key, Transport *transports[], int *N, Transport *transport)
 {
 
     cout << "\n\n";
-    cout << "1. Add Object" << endl;
-    cout << "2. Delete Object" << endl;
-    cout << "3. Print Objects" << endl;
-    cout << "4. Sort Objects By Time From" << endl;
-    cout << "5. Sort Objects By Time To" << endl;
-    cout << "6. Sort Objects By Time Full" << endl;
-    cout << "7. Sort Objects By Distance" << endl;
-    cout << "8. Find Objects By Point From" << endl;
-    cout << "9. Find Objects By Point To" << endl;
+    cout << "1. Add Transport" << endl;
+    cout << "2. Delete Transport" << endl;
+    cout << "3. Print Transports" << endl;
+    cout << "4. Sort Transports By Time From" << endl;
+    cout << "5. Sort Transports By Time To" << endl;
+    cout << "6. Sort Transports By Time Full" << endl;
+    cout << "7. Sort Transports By Distance" << endl;
+    cout << "8. Find Transports By Point From" << endl;
+    cout << "9. Find Transports By Point To" << endl;
     cin >> key;
 
     switch (*key)
