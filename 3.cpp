@@ -377,7 +377,6 @@ void FindByPointType(Transport *transports[], int N, int type = 1)
 
 void Menu(char *key, Transport *transports[], int *N, Transport *transport)
 {
-
     cout << "\n\n";
     cout << "1. Add Transport" << endl;
     cout << "2. Delete Transport" << endl;
