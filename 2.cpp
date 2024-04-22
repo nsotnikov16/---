@@ -63,6 +63,19 @@ void InputDaysMonth(struct days *days)
     }
 }
 
+int InputClass(string printText) // Представим что у транспорта может быть 3 класса
+{
+    int valueClass = -1;
+    while (!(valueClass >= 1 && valueClass <= 3))
+    {
+        cout << "\t| Class " << printText << " : ";
+        cin >> valueClass;
+        if (valueClass < 1 || valueClass > 3)
+            cout << "Input Error!" << endl;
+    }
+    return valueClass;
+}
+
 class Transport
 {
 protected:
@@ -77,18 +90,6 @@ protected:
 public:
     Transport() : distance(0.0), places(0), timeFrom({0, 0}), timeTo({0, 0})
     {
-    }
-    int InputClass(string printText) // Представим что у транспорта может быть 3 класса
-    {
-        int valueClass = -1;
-        while (!(valueClass >= 1 && valueClass <= 3))
-        {
-            cout << "\t| Class " << printText << " : ";
-            cin >> valueClass;
-            if (valueClass < 1 || valueClass > 3)
-                cout << "Input Error!" << endl;
-        }
-        return valueClass;
     }
 
     virtual void Input()
@@ -169,7 +170,7 @@ public:
     {
         cout << "Please, input Train info\nTrain";
         Transport::Input();
-        int valueClass = Transport::InputClass("(1 - Platscart, 2 - Coupe, 3 - Sleeping)");
+        int valueClass = InputClass("(1 - Platscart, 2 - Coupe, 3 - Sleeping)");
         classTransport = classesTransport[valueClass - 1];
         SetPlaces(valueClass);
     }
@@ -215,7 +216,7 @@ public:
         cin >> pointMiddle;
         cout << "\t| Model: ";
         cin >> model;
-        int valueClass = Transport::InputClass("(1 - Economy, 2 - Business, 3 - Executive)");
+        int valueClass = InputClass("(1 - Economy, 2 - Business, 3 - Executive)");
         classTransport = classesTransport[valueClass - 1];
         SetPlaces(valueClass);
     }
