@@ -78,6 +78,15 @@ int InputClass(string printText) // Представим что у трансп�
     return valueClass;
 }
 
+bool compareTime(time time1, time time2)
+{
+    if (time1.hour == time2.hour)
+    {
+        return time1.minute > time2.minute;
+    }
+    return time1.hour > time2.hour;
+}
+
 class Transport
 {
 protected:
@@ -133,6 +142,26 @@ public:
     {
         return type;
     };
+
+    time GetTimeFrom()
+    {
+        return timeFrom;
+    }
+
+    time GetTimeTo()
+    {
+        return timeTo;
+    }
+
+    double GetDistance()
+    {
+        return distance;
+    }
+
+    // time GetTimeFull()
+    // {
+    //     return timeTo;
+    // }
 };
 
 class Bus : public Transport
@@ -158,7 +187,7 @@ public:
 
     void Print()
     {
-        cout << "Bus:" << endl;
+        cout << "\n\nBus:" << endl;
         Transport::Print();
         cout << "Days Month: " << days.daysMonth << endl;
         cout << "Model: " << model << endl;
@@ -203,7 +232,7 @@ public:
 
     void Print()
     {
-        cout << "Train:" << endl;
+        cout << "\n\nTrain:" << endl;
         Transport::Print();
         cout << "Class: " << classTransport << endl;
     }
@@ -253,7 +282,7 @@ public:
 
     void Print()
     {
-        cout << "AirPlane:" << endl;
+        cout << "\n\nAirPlane:" << endl;
         Transport::Print();
         cout << "Point Middle: " << pointTo << endl;
         cout << "Model: " << model << endl;
@@ -261,9 +290,10 @@ public:
     }
 };
 
-void AddObject(Transport *transports[], int *N, Transport *transport)
+void AddObject(Transport *transports[], int *N)
 {
     char keyType;
+    Transport *transport;
 
     if (*N >= CountObjects)
     {
@@ -303,17 +333,26 @@ void AddObject(Transport *transports[], int *N, Transport *transport)
 void DeleteObject(Transport *transports[], int *N)
 {
     int index;
-    cout << "Enter the index of the object: ";
+
+    if (*N == 0)
+    {
+        cout << "The objects do not exist!\n";
+        return;
+    }
+
+    cout << "Enter the index of the object from 0"
+         << " to " << *N - 1 << ": ";
     cin >> index;
 
-    if (index < 0 || index >= *N)
+    if (index < 0 || index > *N)
     {
         cout << "\nIncorrect index!";
         return;
     }
 
     delete transports[*N];
-    for (; index < *N - 1; index++)
+
+    for (; index < *N; index++)
     {
         transports[index] = transports[index + 1];
     }
@@ -335,23 +374,56 @@ void PrintObjects(Transport *transports[], int N)
         transports[i]->Print();
 }
 
-void SortByTimeFrom(Transport *A[], int N)
+typedef bool (*condition)(int i, int j, Transport *transports[]);
+
+/* Сортировка по условию, чтобы не дублировать похожие циклы */
+void SortObjects(Transport *transports[], int N, condition condition)
+{
+    if (N <= 0)
+    {
+        cout << "The objects do not exist!\n";
+        return;
+    }
+
+    Transport *transport;
+    int i, j;
+    for (i = N - 1; i > 0; i--)
+    {
+        for (j = 0; j < i; j++)
+        {
+            if (condition(i, j, transports))
+            {
+                transport = transports[i];
+                transports[i] = transports[j];
+                transports[j] = transport;
+            }
+        }
+    }
+}
+
+/* Сортировка по времени отправления по возрастанию */
+bool SortByTimeFrom(int i, int j, Transport *transports[])
+{
+    return compareTime(transports[j]->GetTimeFrom(), transports[i]->GetTimeFrom());
+}
+
+/* Сортировка по времени отправления по возрастанию */
+bool SortByTimeTo(int i, int j, Transport *transports[])
+{
+    return compareTime(transports[j]->GetTimeTo(), transports[i]->GetTimeTo());
+}
+
+void SortByTimeFull(Transport *transports[], int N)
 {
 }
 
-void SortByTimeTo(Transport *A[], int N)
+/* Сортировка по расстоянию по возрастанию */
+bool SortByDistance(int i, int j, Transport *transports[])
 {
+    return transports[j]->GetDistance() > transports[i]->GetDistance();
 }
 
-void SortByTimeFull(Transport *A[], int N)
-{
-}
-
-void SortByDistance(Transport *A[], int N)
-{
-}
-
-void FindByPointType(Transport *transports[], int N, int type = 1)
+void FilterByPointType(Transport *transports[], int N, int type = 1)
 {
     int count = 0;
     string point;
@@ -375,8 +447,10 @@ void FindByPointType(Transport *transports[], int N, int type = 1)
     return;
 }
 
-void Menu(char *key, Transport *transports[], int *N, Transport *transport)
+void Menu(Transport *transports[], int *N)
 {
+    int key;
+
     cout << "\n\n";
     cout << "1. Add Transport" << endl;
     cout << "2. Delete Transport" << endl;
@@ -389,35 +463,45 @@ void Menu(char *key, Transport *transports[], int *N, Transport *transport)
     cout << "9. Find Transports By Point To" << endl;
     cin >> key;
 
-    switch (*key)
+    switch (key)
     {
-    case '1':
-        AddObject(transports, N, transport);
+    case 1:
+        AddObject(transports, N);
         break;
-    case '2':
+    case 2:
         DeleteObject(transports, N);
         break;
-    case '3':
+    case 3:
         PrintObjects(transports, *N);
         break;
-    case '4':
+    case 4:
+        SortObjects(transports, *N, &SortByTimeFrom);
         break;
-    case '5':
+    case 5:
+        SortObjects(transports, *N, &SortByTimeTo);
         break;
-    case '6':
+    case 6:
+        // SortByTimeFull(transports, *N);
         break;
-    case '7':
+    case 7:
+        SortObjects(transports, *N, &SortByDistance);
         break;
-    case '8':
-        FindByPointType(transports, *N);
+    case 8:
+        FilterByPointType(transports, *N);
         break;
-    case '9':
-        FindByPointType(transports, *N, 2);
+    case 9:
+        FilterByPointType(transports, *N, 2);
+        break;
+    case 0:
+        cout << "Exit" << endl;
         break;
     default:
         cout << "The command was not found!" << endl;
         break;
     }
+
+    if (key != 0)
+        Menu(transports, N);
 }
 
 int main()
@@ -425,11 +509,8 @@ int main()
     char key;
     Transport *transports[CountObjects];
     int N = 0;
-    Transport *transport;
-    do
-    {
-        Menu(&key, transports, &N, transport);
-    } while (key != '0');
+
+    Menu(transports, &N);
     system("pause");
     return 0;
 }
