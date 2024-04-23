@@ -24,6 +24,19 @@ bool checkValidityTime(time *time)
     return time->hour >= 0 && time->hour <= 23 && time->minute >= 0 && time->minute <= 59;
 }
 
+double convertTime(time time)
+{
+    return time.hour + (time.minute / 60);
+}
+
+string getInputValueStr(string inputText)
+{
+    string value;
+    cout << inputText;
+    cin >> value;
+    return value;
+}
+
 void InputTime(time *time, string type = "From")
 {
     cout << "\t| Time " << type << " (hour minutes): ";
@@ -100,7 +113,7 @@ protected:
     string type;
 
 public:
-    Transport() : distance(0.0), places(0), timeFrom({0, 0}), timeTo({0, 0}), type("")
+    Transport() : distance(0.0), places(0), timeFrom({0, 0}), timeTo({0, 0}), type("None")
     {
     }
 
@@ -128,6 +141,11 @@ public:
         cout << "Days Week: " << days.daysWeek << endl;
     };
 
+    string GetType()
+    {
+        return type;
+    }
+
     string GetPointFrom()
     {
         return pointFrom;
@@ -137,11 +155,6 @@ public:
     {
         return pointTo;
     }
-
-    string GetType()
-    {
-        return type;
-    };
 
     time GetTimeFrom()
     {
@@ -158,10 +171,17 @@ public:
         return distance;
     }
 
-    // time GetTimeFull()
-    // {
-    //     return timeTo;
-    // }
+    double GetTimeFull()
+    {
+        double convertTimeFrom = convertTime(timeFrom);
+        double convertTimeTo = convertTime(timeTo);
+        if (convertTimeFrom < convertTimeTo)
+        {
+            return convertTimeTo - convertTimeFrom;
+        }
+
+        return 24 - convertTimeFrom + convertTimeTo;
+    }
 };
 
 class Bus : public Transport
@@ -350,7 +370,7 @@ void DeleteObject(Transport *transports[], int *N)
         return;
     }
 
-    delete transports[*N];
+    delete transports[index];
 
     for (; index < *N; index++)
     {
@@ -413,8 +433,10 @@ bool SortByTimeTo(int i, int j, Transport *transports[])
     return compareTime(transports[j]->GetTimeTo(), transports[i]->GetTimeTo());
 }
 
-void SortByTimeFull(Transport *transports[], int N)
+/* Сортировка по общему времени в пути по возрастанию */
+bool SortByTimeFull(int i, int j, Transport *transports[])
 {
+    return transports[i]->GetTimeFull() < transports[j]->GetTimeFull();
 }
 
 /* Сортировка по расстоянию по возрастанию */
@@ -423,19 +445,15 @@ bool SortByDistance(int i, int j, Transport *transports[])
     return transports[j]->GetDistance() > transports[i]->GetDistance();
 }
 
-void FilterByPointType(Transport *transports[], int N, int type = 1)
+typedef bool (*conditionFilter)(Transport *transport, string inputValue);
+
+// Фильтрация по условию
+void Filter(Transport *transports[], int N, string inputValue, conditionFilter c)
 {
     int count = 0;
-    string point;
-    string p;
-
-    cout << (type == 1 ? "Input Point From: " : "Input Point To: ");
-    cin >> point;
-
     for (int i = 0; i < N; i++)
     {
-        p = type == 1 ? transports[i]->GetPointFrom() : transports[i]->GetPointTo();
-        if (p == point)
+        if (c(transports[i], inputValue))
         {
             transports[i]->Print();
             cout << endl;
@@ -445,6 +463,20 @@ void FilterByPointType(Transport *transports[], int N, int type = 1)
 
     cout << "\nObjects found - " << count;
     return;
+}
+bool FilterByPointFrom(Transport *transport, string inputValue)
+{
+    return transport->GetPointFrom() == inputValue;
+}
+
+bool FilterByPointTo(Transport *transport, string inputValue)
+{
+    return transport->GetPointTo() == inputValue;
+}
+
+bool FilterByType(Transport *transport, string inputValue)
+{
+    return transport->GetType() == inputValue;
 }
 
 void Menu(Transport *transports[], int *N)
@@ -459,8 +491,10 @@ void Menu(Transport *transports[], int *N)
     cout << "5. Sort Transports By Time To" << endl;
     cout << "6. Sort Transports By Time Full" << endl;
     cout << "7. Sort Transports By Distance" << endl;
-    cout << "8. Find Transports By Point From" << endl;
-    cout << "9. Find Transports By Point To" << endl;
+    cout << "8. Filter Transports By Point From" << endl;
+    cout << "9. Filter Transports By Point To" << endl;
+    cout << "10. Filter Transports By Type" << endl;
+    cout << "0. Exit" << endl;
     cin >> key;
 
     switch (key)
@@ -481,16 +515,19 @@ void Menu(Transport *transports[], int *N)
         SortObjects(transports, *N, &SortByTimeTo);
         break;
     case 6:
-        // SortByTimeFull(transports, *N);
+        SortObjects(transports, *N, &SortByTimeFull);
         break;
     case 7:
         SortObjects(transports, *N, &SortByDistance);
         break;
     case 8:
-        FilterByPointType(transports, *N);
+        Filter(transports, *N, getInputValueStr("Input Point From: "), &FilterByPointFrom);
         break;
     case 9:
-        FilterByPointType(transports, *N, 2);
+        Filter(transports, *N, getInputValueStr("Input Point To: "), &FilterByPointTo);
+        break;
+    case 10:
+        Filter(transports, *N, getInputValueStr("Input type (1 - Bus, 2 - Train, 3 - AirPlane): "), &FilterByType);
         break;
     case 0:
         cout << "Exit" << endl;
@@ -511,6 +548,10 @@ int main()
     int N = 0;
 
     Menu(transports, &N);
+
+    for (int i = 0; i < N; i++)
+        delete transports[i];
+
     system("pause");
     return 0;
 }
