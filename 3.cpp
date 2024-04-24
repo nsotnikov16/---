@@ -78,7 +78,7 @@ void InputDaysMonth(struct days *days)
     }
 }
 
-int InputClass(string printText) // Представим что у транспорта может быть 3 класса
+int InputClass(string printText) // Ïðåäñòàâèì ÷òî ó òðàíñïîðòà ìîæåò áûòü 3 êëàññà
 {
     int valueClass = -1;
     while (!(valueClass >= 1 && valueClass <= 3))
@@ -394,9 +394,9 @@ void PrintObjects(Transport *transports[], int N)
         transports[i]->Print();
 }
 
-typedef bool (*condition)(int i, int j, Transport *transports[]);
+typedef bool (*condition)(Transport * t1, Transport * t2);
 
-/* Сортировка по условию, чтобы не дублировать похожие циклы */
+/* Ñîðòèðîâêà ïî óñëîâèþ, ÷òîáû íå äóáëèðîâàòü ïîõîæèå öèêëû */
 void SortObjects(Transport *transports[], int N, condition condition)
 {
     if (N <= 0)
@@ -411,7 +411,7 @@ void SortObjects(Transport *transports[], int N, condition condition)
     {
         for (j = 0; j < i; j++)
         {
-            if (condition(i, j, transports))
+            if (condition(transports[i], transports[j]))
             {
                 transport = transports[i];
                 transports[i] = transports[j];
@@ -421,33 +421,33 @@ void SortObjects(Transport *transports[], int N, condition condition)
     }
 }
 
-/* Сортировка по времени отправления по возрастанию */
-bool SortByTimeFrom(int i, int j, Transport *transports[])
+/* Ñîðòèðîâêà ïî âðåìåíè îòïðàâëåíèÿ ïî âîçðàñòàíèþ */
+bool SortByTimeFrom(Transport * t1, Transport * t2)
 {
-    return compareTime(transports[j]->GetTimeFrom(), transports[i]->GetTimeFrom());
+    return compareTime(t2->GetTimeFrom(), t1->GetTimeFrom());
 }
 
-/* Сортировка по времени отправления по возрастанию */
-bool SortByTimeTo(int i, int j, Transport *transports[])
+/* Ñîðòèðîâêà ïî âðåìåíè îòïðàâëåíèÿ ïî âîçðàñòàíèþ */
+bool SortByTimeTo(Transport * t1, Transport * t2)
 {
-    return compareTime(transports[j]->GetTimeTo(), transports[i]->GetTimeTo());
+    return compareTime(t2->GetTimeTo(), t1->GetTimeTo());
 }
 
-/* Сортировка по общему времени в пути по возрастанию */
-bool SortByTimeFull(int i, int j, Transport *transports[])
+/* Ñîðòèðîâêà ïî îáùåìó âðåìåíè â ïóòè ïî âîçðàñòàíèþ */
+bool SortByTimeFull(Transport * t1, Transport * t2)
 {
-    return transports[i]->GetTimeFull() < transports[j]->GetTimeFull();
+    return t1->GetTimeFull() < t2->GetTimeFull();
 }
 
-/* Сортировка по расстоянию по возрастанию */
-bool SortByDistance(int i, int j, Transport *transports[])
+/* Ñîðòèðîâêà ïî ðàññòîÿíèþ ïî âîçðàñòàíèþ */
+bool SortByDistance(Transport * t1, Transport * t2)
 {
-    return transports[j]->GetDistance() > transports[i]->GetDistance();
+    return t2->GetDistance() > t1->GetDistance();
 }
 
 typedef bool (*conditionFilter)(Transport *transport, string inputValue);
 
-// Фильтрация по условию
+// Ôèëüòðàöèÿ ïî óñëîâèþ
 void Filter(Transport *transports[], int N, string inputValue, conditionFilter c)
 {
     int count = 0;
