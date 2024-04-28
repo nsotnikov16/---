@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
+#include <sstream>
 #include <vector>
 
 using namespace std;
@@ -134,6 +135,7 @@ public:
     };
     virtual void Print()
     {
+        cout << "Type: " << type << endl;
         cout << "Point From: " << pointFrom << endl;
         cout << "Point To: " << pointTo << endl;
         cout << "Distance: " << distance << " km" << endl;
@@ -158,14 +160,31 @@ public:
 
     virtual void Load(istream &is)
     {
-        is >> pointFrom;
-        is >> pointTo;
-        is >> distance;
-        is >> timeFrom.hour >> timeFrom.minute;
-        is >> places;
-        is >> days.daysWeek;
-        is >> days.daysMonth;
-        is >> type;
+        getline(is, pointFrom, '|');
+        pointFrom.erase(0, pointFrom.find_first_not_of(" \t\n\r\f\v"));
+        getline(is, pointTo, '|');
+
+        string distanceString;
+        getline(is, distanceString, '|');
+        distance = stod(distanceString);
+
+        string timeFromString;
+        getline(is, timeFromString, '|');
+        stringstream ss1(timeFromString);
+        ss1 >> timeFrom.hour >> timeFrom.minute;
+
+        string timeToString;
+        getline(is, timeToString, '|');
+        stringstream ss2(timeToString);
+        ss2 >> timeTo.hour >> timeTo.minute;
+
+        string placesString;
+        getline(is, placesString, '|');
+        places = stoi(placesString);
+
+        getline(is, days.daysWeek, '|');
+        getline(is, days.daysMonth, '|');
+        getline(is, type, '|');
     };
 
     string GetType()
@@ -249,7 +268,7 @@ public:
     void Load(istream &is)
     {
         Transport::Load(is);
-        is >> model;
+        getline(is, model, '|');
     }
 };
 
@@ -305,7 +324,7 @@ public:
     void Load(istream &is)
     {
         Transport::Load(is);
-        is >> classTransport;
+        getline(is, classTransport, '|');
     }
 };
 
@@ -371,51 +390,18 @@ public:
     void Load(istream &is)
     {
         Transport::Load(is);
-        is >> classTransport;
-        is >> model;
-        is >> pointMiddle;
+        getline(is, classTransport, '|');
+        getline(is, model, '|');
+        getline(is, pointMiddle, '|');
     }
 };
-
-bool SortByTimeFrom(Transport *t1, Transport *t2)
-{
-    return compareTime(t2->GetTimeFrom(), t1->GetTimeFrom());
-}
-
-bool SortByTimeTo(Transport *t1, Transport *t2)
-{
-    return compareTime(t2->GetTimeTo(), t1->GetTimeTo());
-}
-
-bool SortByTimeFull(Transport *t1, Transport *t2)
-{
-    return t1->GetTimeFull() < t2->GetTimeFull();
-}
-
-bool SortByDistance(Transport *t1, Transport *t2)
-{
-    return t2->GetDistance() > t1->GetDistance();
-}
-
-bool FilterByPointFrom(Transport *transport, string inputValue)
-{
-    return transport->GetPointFrom() == inputValue;
-}
-
-bool FilterByPointTo(Transport *transport, string inputValue)
-{
-    return transport->GetPointTo() == inputValue;
-}
-
-bool FilterByType(Transport *transport, string inputValue)
-{
-    return transport->GetType() == inputValue;
-}
 
 class Collection
 {
 private:
     vector<Transport *> transports;
+
+public:
     enum class types
     {
         None,
@@ -423,16 +409,14 @@ private:
         Train,
         AirPlane
     };
-
-public:
     virtual ~Collection()
     {
         Clear();
     };
     void Clear()
     {
-        for (int i; i < transports.size(); i++)
-            delete transports[i];
+        for (auto t : transports)
+            delete t;
 
         transports.clear();
     };
@@ -447,66 +431,66 @@ public:
         {
             fout << transports[i]->GetType() << endl;
             transports[i]->Save(fout);
+            fout << endl;
         }
         fout.close();
         return true;
     }
 
     bool Load(string filename)
-{
-	int n, i;
-	ifstream fin(filename);
-	if (!fin)
-		return false;
-	Clear();
-	fin >> n;
-	for (i = 0; i < n; i++)
-	{
-		int t;
-		fin >> t;
-		Transport * t = Create((ItemType)t);
-		if (!t)
-			break;
-		p->Load(fin);
-		Add(p);
-	}
-	fin.close();
-	if (i == n)
-		return true;
-	Clear();
-	return false;
-}
+    {
+        int n, i;
+        ifstream fin(filename);
+        if (!fin)
+            return false;
+        Clear();
+        fin >> n;
+        for (i = 0; i < n; i++)
+        {
+            int type;
+            fin >> type;
+            Transport *t = Create((types)type);
+            if (!t)
+                break;
+            t->Load(fin);
+            Add(t);
+        }
+        fin.close();
+        if (i == n)
+            return true;
+        Clear();
+        return false;
+    }
 
     int GetSize()
     {
         return transports.size();
     }
 
-    bool Add(int type)
+    Transport *Create(types type)
     {
         Transport *transport = nullptr;
         switch (type)
         {
-        case (int)types::Bus:
+        case types::Bus:
             transport = new Bus;
             break;
-        case (int)types::Train:
+        case types::Train:
             transport = new Train;
             break;
-        case (int)types::AirPlane:
+        case types::AirPlane:
             transport = new AirPlane;
             break;
         }
 
-        if (!transport)
-            return false;
+        return transport;
+    }
 
-        transport->Input();
-
+    void Add(Transport *transport)
+    {
         transports.push_back(transport);
-
-        return true;
     };
+
     bool Delete(int pos)
     {
         if (pos < 0 || pos >= GetSize())
@@ -565,9 +549,45 @@ public:
     }
 };
 
+bool SortByTimeFrom(Transport *t1, Transport *t2)
+{
+    return compareTime(t2->GetTimeFrom(), t1->GetTimeFrom());
+}
+
+bool SortByTimeTo(Transport *t1, Transport *t2)
+{
+    return compareTime(t2->GetTimeTo(), t1->GetTimeTo());
+}
+
+bool SortByTimeFull(Transport *t1, Transport *t2)
+{
+    return t1->GetTimeFull() < t2->GetTimeFull();
+}
+
+bool SortByDistance(Transport *t1, Transport *t2)
+{
+    return t2->GetDistance() > t1->GetDistance();
+}
+
+bool FilterByPointFrom(Transport *transport, string inputValue)
+{
+    return transport->GetPointFrom() == inputValue;
+}
+
+bool FilterByPointTo(Transport *transport, string inputValue)
+{
+    return transport->GetPointTo() == inputValue;
+}
+
+bool FilterByType(Transport *transport, string inputValue)
+{
+    return transport->GetType() == inputValue;
+}
+
 void Menu(Collection *transports)
 {
     int key;
+    Transport *t = nullptr;
 
     cout << "\n\n";
     cout << "1. Add Transport" << endl;
@@ -589,9 +609,21 @@ void Menu(Collection *transports)
     {
     case 1:
         int keyType;
+
         cout << "Choose (1 - Bus, 2 - Train, 3 - AirPlane):" << endl;
         cin >> keyType;
-        transports->Add(keyType) ? cout << "\nTransport added successfully!" : cout << "incorrect choice!" << endl;
+        t = transports->Create((Collection::types)keyType);
+        if (t)
+        {
+            t->Input();
+            transports->Add(t);
+            cout << "\nTransport added successfully!";
+        }
+        else
+        {
+            cout << "incorrect choice!" << endl;
+        }
+
         break;
     case 2:
         int index;
@@ -629,6 +661,7 @@ void Menu(Collection *transports)
         transports->Save("data.txt");
         break;
     case 12:
+        transports->Load("data.txt");
         break;
     case 0:
         cout << "Exit" << endl;
