@@ -6,8 +6,6 @@
 
 using namespace std;
 
-#define CountObjects 20
-
 struct time
 {
     int hour;
@@ -658,10 +656,12 @@ void Menu(Collection *transports)
         transports->Filter(getInputValueStr("Input type (1 - Bus, 2 - Train, 3 - AirPlane): "), &FilterByType);
         break;
     case 11:
-        transports->Save("data.txt");
+        if (!transports->Save("data.txt"))
+            cout << "Saving error!" << endl;
         break;
     case 12:
-        transports->Load("data.txt");
+        if (!transports->Load("data.txt"))
+            cout << "Loading error!" << endl;
         break;
     case 0:
         cout << "Exit" << endl;
@@ -677,7 +677,6 @@ void Menu(Collection *transports)
 
 int main()
 {
-    char key;
     Collection transports;
     Menu(&transports);
     system("pause");
